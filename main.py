@@ -64,7 +64,7 @@ g = torch.Generator().manual_seed(2147483647)
 ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
 itos[ix]
 #%%
-P = N.float()
+P = (N + 1).float()
 P /= P.sum(dim=1, keepdim=True)
 P
 # %%
@@ -81,7 +81,8 @@ for i in range(5):
     print(''.join(out))
 # %%
 log_likelihood = 0.0
-for w in words[:3]:
+n = 0
+for w in words:
     chs = ['.'] + list(w) + ['.']
     for ch1, ch2 in zip(chs, chs[1:]):
         xi1 = stoi[ch1]
@@ -89,9 +90,11 @@ for w in words[:3]:
         prob = P[xi1, xi2]
         logprob = torch.log(prob)
         log_likelihood += logprob
-        print(f'{ch1}{ch2}: {prob:.4f} {logprob:.4f}')
+        n += 1
+        #print(f'{ch1}{ch2}: {prob:.4f} {logprob:.4f}')
 print(f'{log_likelihood.item():.4f}')
 # %%
 nll = -log_likelihood
 print(f'{nll.item():.4f}')
+print(f'{nll.item()/n:.4f}')
 # %%
