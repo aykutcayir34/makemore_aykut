@@ -98,3 +98,49 @@ nll = -log_likelihood
 print(f'{nll.item():.4f}')
 print(f'{nll.item()/n:.4f}')
 # %%
+# create the tranining set of bigrams (x, y)
+xs, ys = [], []
+for w in words[:1]:
+    chs = ['.'] + list(w) + ['.']
+    for ch1, ch2 in zip(chs, chs[1:]):
+        xi1 = stoi[ch1]
+        xi2 = stoi[ch2]
+        xs.append(xi1)
+        ys.append(xi2)
+
+xs = torch.tensor(xs)
+ys = torch.tensor(ys)
+# %%
+import torch.nn.functional as F
+# %%
+xenc = F.one_hot(xs, num_classes=27).float()
+# %%
+xenc.shape
+# %%
+W = torch.randn((27, 27))
+(xenc @ W).shape
+# %%
+logits = xenc @ W # log-counts
+# %%
+counts = logits.exp()
+probs = counts / counts.sum(dim=1, keepdim=True)
+# %%
+probs[0].shape
+# %%
+nlls = torch.zeros(5)
+for i in range(5):
+    x = xs[i].item()
+    y = ys[i].item()
+    print("------")
+    print(f"bigram example {i + 1}: {itos[x]}{itos[y]} (indexes {x}, {y})")
+    print("input to the neural net:", x)
+    print("output probabilities from neural net:", probs[i])
+    print("label (actual next character):", y)
+    p = probs[i, y]
+    print("probability assigned by the net to the correct character", p.item())
+    logp = torch.log(p)
+    print("log likelihood:", logp.item())
+    nlls[i] = -logp
+print("=======")
+print("average negative log likelihood", nlls.mean().item())
+# %%
