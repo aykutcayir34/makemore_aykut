@@ -144,3 +144,51 @@ for i in range(5):
 print("=======")
 print("average negative log likelihood", nlls.mean().item())
 # %%
+g = torch.Generator().manual_seed(2147483647)
+W = torch.randn((27, 27), generator=g, requires_grad=True)
+# %%
+xenc = F.one_hot(xs, num_classes=27).float()
+logits = xenc @ W
+counts = logits.exp()
+probs = counts / counts.sum(dim=1, keepdim=True)
+# %%
+loss = -probs[torch.arange(5), ys].log().mean()
+#%%
+print(loss.item())
+# %%
+W.grad = None
+loss.backward()
+# %%
+W.grad
+# %%
+W.data += -0.1 * W.grad
+# %%
+####### All dataset
+xs, ys = [], []
+for w in words:
+    chs = ['.'] + list(w) + ['.']
+    for ch1, ch2 in zip(chs, chs[1:]):
+        xi1 = stoi[ch1]
+        xi2 = stoi[ch2]
+        xs.append(xi1)
+        ys.append(xi2)
+
+xs = torch.tensor(xs)
+ys = torch.tensor(ys)
+num = xs.nelement()
+print("number of examples", num)
+#%%
+g = torch.Generator().manual_seed(2147483647)
+W = torch.randn((27, 27), generator=g, requires_grad=True)
+# %%
+for k in range(100):
+    xenc = F.one_hot(xs, num_classes=27).float()
+    logits = xenc @ W
+    counts = logits.exp()
+    probs = counts / counts.sum(dim=1, keepdim=True)
+    loss = -probs[torch.arange(num), ys].log().mean()
+    print(loss.item())
+    W.grad = None
+    loss.backward()
+    W.data += -50 * W.grad
+# %%
